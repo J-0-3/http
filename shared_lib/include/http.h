@@ -71,7 +71,7 @@ typedef enum http_status {
     NETWORK_AUTHENTICATION_REQUIRED = 511
 } http_status;
 
-typedef struct http_req {
+typedef struct {
     http_method meth;
     char* resource;
     http_version ver;
@@ -80,7 +80,7 @@ typedef struct http_req {
     char* content;
 } http_req;
 
-typedef struct http_res {
+typedef struct {
     http_version ver;
     http_status status_code;
     char* status_message;
@@ -101,3 +101,9 @@ int http_req_set_content(const char* content, size_t content_length, http_req* r
 int http_parse_res_status_line(const char* status_line, http_res* res);
 int http_parse_res_header_line(const char* header_line, http_res* res);
 int http_res_set_content(const char* content, size_t content_length, http_res* res);
+int http_res_set_status_message(const char* status_message, http_res* res);
+int http_req_print(http_req* req);
+int http_res_print(http_res* res);
+int http_meth_enum_as_str(http_method method, char* out, unsigned int out_len);
+int http_version_enum_as_str(http_version version, char* out, unsigned int out_len);
+int http_status_code_as_str(http_status state, char* out, unsigned int out_len);

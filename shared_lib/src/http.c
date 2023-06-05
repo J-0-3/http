@@ -186,6 +186,37 @@ int http_req_set_content(const char* content, size_t content_length, http_req* r
     return 0;
 }
 
+void print_header(const char* key, const void* val, size_t val_size, void*) {
+    printf("%s: %s\n", key, (const char*)val);
+}
+int http_req_print(http_req* req) {
+    if (req->headers == NULL) {
+        return -1;
+    }
+    if (req->resource == NULL) {
+        return -1;
+    }
+    char method_name[16];
+    if (http_meth_enum_as_str(req->meth, method_name, 15) < 0) {
+        return -1;
+    }
+    char version[16];
+    if (http_version_enum_as_str(req->ver, version, 15) < 0) {
+        return -1;
+    }
+    printf("Method: %s\n", method_name);
+    printf("Resource: %s\n", req->resource);
+    printf("Version: %s\n", version);
+    printf("Headers: \n");
+    search_tree_foreach(req->headers, print_header, NULL);
+    printf("Content: ");
+    for (int c = 0; c < req->content_length; c++) {
+        printf("%c", req->content[c]);
+    }
+    printf("\n");
+    return 0;
+}
+
 int http_parse_res_status_line(const char* status_line, http_res* res) {
     char* status_line_copy = malloc(strlen(status_line) + 1);
     if (status_line_copy == NULL) {
@@ -211,7 +242,7 @@ int http_parse_res_status_line(const char* status_line, http_res* res) {
         return -2;
     }
     int status_code = atoi(status_code_s); 
-    if (status_code == 0) {
+    if (status_code > 600 || status_code < 100) {
         free(status_line_copy);
         return -2;
     }
@@ -273,5 +304,81 @@ int http_res_set_content(const char* content, size_t content_length, http_res* r
         return -1;
     }
     memcpy(res->content, content, content_length);
+    return 0;
+}
+
+int http_res_set_status_message(const char* status_message, http_res* res) {
+    char* status_message_alloc = malloc(strlen(status_message) + 1);
+    if (status_message_alloc == NULL) {
+        return -1;
+    }
+    if (res->status_message != NULL) {
+        free(res->status_message);
+    }
+    res->status_message = status_message_alloc;
+    strcpy(res->status_message, status_message);
+}
+
+int http_res_print(http_res* res) {
+    if (res->headers == NULL) {
+        return -1;
+    }
+    if (res->status_message == NULL) {
+        return -1;
+    }
+    char version[16];
+    if (http_version_enum_as_str(res->ver, version, 15) < 0) {
+        return -1;
+    }
+    printf("Version: %s\n", version);
+    printf("Status Code: %d\n", res->status_code);
+    printf("Status Message: %s\n", res->status_message);
+    printf("Headers: \n");
+    search_tree_foreach(res->headers, print_header, NULL);
+    printf("Content: ");
+    for (int c = 0; c < res->content_length; c++) {
+        printf("%c", res->content[c]);
+    }
+    printf("\n");
+    return 0;
+}
+/** convert a method enum to a string representation and store in "out". 
+    out_len should contain the number of characters in "out" NOT including 
+    the null terminator */
+int http_meth_enum_as_str(http_method method, char* out, unsigned int out_len) {
+    const char* methods[] = {"GET", "POST", "PUT", 
+                       "CONNECT", "OPTIONS", "HEAD", 
+                       "DELETE", "TRACE", "PATCH"};
+    if (method >= 0 && method < 9) {
+        const char* method_name = methods[method];
+        if (strlen(method_name) > out_len) {
+            return -1;
+        }
+        strcpy(out, method_name);
+        return 0;
+    }
+    return -1;
+}
+
+int http_version_enum_as_str(http_version version, char* out, unsigned int out_len) {
+    const char* versions[] = {"HTTP/1.0", "HTTP/1.1"};
+    if (version >= 0 && version < 2) {
+        const char* version_name = versions[version];
+        if (strlen(version_name) > out_len) {
+            return -1;
+        }
+        strcpy(out, version_name);
+        return 0;
+    }
+    return -1;
+}
+
+int http_status_code_as_str(http_status status, char* out, unsigned int out_len) {
+    if (out_len < 4) {
+        return -1;
+    }
+    if (snprintf(out, out_len, "%03d", status % 1000) < 0) {
+        return -1;
+    }
     return 0;
 }

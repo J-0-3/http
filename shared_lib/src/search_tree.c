@@ -70,7 +70,7 @@ void search_tree_free(search_tree tree) {
     free(tree);
 }
 
-int search_tree_add(const char* key, void* val, size_t val_size, search_tree tree) {
+int search_tree_add(const char* key, const void* val, size_t val_size, search_tree tree) {
     search_tree_node* root = *tree;
     if (root == NULL) {
         *tree = search_tree_node_new(key, val, val_size);
@@ -105,11 +105,13 @@ int search_tree_add(const char* key, void* val, size_t val_size, search_tree tre
 
 const void* search_tree_lookup(search_tree tree, const char* key, size_t* val_size) {
     search_tree_node* root = *tree;
-    int cmp = strcoll(key, root->key);
+    if (root == NULL) {
+        return NULL;
+    }
+    int cmp = strcmp(key, root->key);
     if (cmp == 0) {
         *val_size = root->val_size;
         return root->val;
-        return 0;
     } else if (cmp > 0) {
         if (root->right == NULL) {
             return NULL;
