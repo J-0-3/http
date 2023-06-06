@@ -23,5 +23,7 @@ if (BUILD_TESTING)
 	target_link_libraries(test_files http)
 	add_test(NAME test_files COMMAND test_files)
 
-    set_tests_properties(http read_line search_tree trim_whitespace PROPERTIES LABELS "libhttp")
+	add_executable(test_paths tests/paths.c)
+	target_link_libraries(test_paths http)
+	add_test(NAME test_paths COMMAND test_paths)
 endif()

@@ -2,6 +2,7 @@
 #include "http_communication.h"
 #include "http.h"
 #include "files.h"
+#include "paths.h"
 #include "int_to_str.h"
 #include <stdio.h>
 #include <sys/time.h>
@@ -67,6 +68,11 @@ int load_page(const char* page, char** content_buf) {
         return -1;
     }
     return file_size;
+}
+
+const char* get_route_file(const char* route) {
+    size_t val_size;
+    return search_tree_lookup(CONFIG->routes, route, &val_size);
 }
 
 http_res* build_error(http_status status_code, const char* status_message) {
@@ -160,9 +166,14 @@ void* handle_connection(void* fd_vp) {
         goto end;
     }
 
+    const char* filename = get_route_file(req->resource);
+    if (filename == NULL) {
+        filename = req->resource;
+    }
+
     char* page_contents;
     int content_length;
-    if ((content_length = load_page(req->resource, &page_contents)) < 0) {
+    if ((content_length = load_page(filename, &page_contents)) < 0) {
         if (content_length == -2) {
             send_error(conn_fd, NOT_FOUND, "Not Found");
             goto end;
@@ -183,7 +194,9 @@ void* handle_connection(void* fd_vp) {
     http_res_set_status_message("OK", res);
     http_res_set_content(page_contents, content_length, res);
     search_tree_add("Connection", "close", 6, res->headers);
-    search_tree_add("Content-Type", "text/html", 10, res->headers); // change this add mimetypes for images etc
+    char mimetype[64];
+    http_get_mimetype_from_ext(filename, mimetype, 64);
+    search_tree_add("Content-Type", mimetype, strlen(mimetype) + 1, res->headers); // change this add mimetypes for images etc
     search_tree_add("Content-Length", content_length_header, strlen(content_length_header) + 1, res->headers);
 
     send_response(conn_fd, res);
@@ -206,7 +219,6 @@ int run_server(server_configuration* server_config) {
         int* conn_fd = malloc(sizeof(int));
         *conn_fd = accept_connection(accept_sock_fd, &conn_addr);
         setsockopt(*conn_fd, SOL_SOCKET, SO_RCVTIMEO, &socket_timeout, sizeof(socket_timeout));
-        printf("Connection from %s \n", inet_ntoa(conn_addr.sin_addr));
         pthread_t thread_handle;
         pthread_create(&thread_handle, NULL, handle_connection, conn_fd);
         pthread_detach(thread_handle);

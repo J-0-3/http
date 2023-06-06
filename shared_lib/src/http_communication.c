@@ -127,17 +127,13 @@ int send_response(int sock_fd, http_res* res) {
     struct send_header_line_args args = {.err = 0, .sock_fd = sock_fd};
     search_tree_foreach(res->headers, send_header_line, &args);
     if (args.err != 0) {
-        perror("Failed to send headers.\n");
         return HTTP_ERR_SOCKET;
     }
     if (sendall(sock_fd, "\r\n", 2) < 0) {
-        perror("Failed to send final crlf.\n");
         return HTTP_ERR_SOCKET;
     }
     if (res->content_length > 0) {
-        printf("Sending content.\n");
         if (sendall(sock_fd, res->content, res->content_length) < 0) {
-            printf("Failed.\n");
             return HTTP_ERR_SOCKET;
         }
     }

@@ -1,6 +1,8 @@
 #include "http.h"
 #include "search_tree.h"
 #include "trim_whitespace.h"
+#include "files.h"
+#include "paths.h"
 #include <string.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -342,9 +344,7 @@ int http_res_print(http_res* res) {
     printf("\n");
     return 0;
 }
-/** convert a method enum to a string representation and store in "out". 
-    out_len should contain the number of characters in "out" NOT including 
-    the null terminator */
+
 int http_meth_enum_as_str(http_method method, char* out, unsigned int out_len) {
     const char* methods[] = {"GET", "POST", "PUT", 
                        "CONNECT", "OPTIONS", "HEAD", 
@@ -381,4 +381,48 @@ int http_status_code_as_str(http_status status, char* out, unsigned int out_len)
         return -1;
     }
     return 0;
+}
+
+int http_get_mimetype_from_ext(const char* filename, char* out, unsigned int out_len) {
+    static search_tree mimetypes = NULL;
+    if (mimetypes == NULL) {
+        mimetypes = search_tree_new();
+        search_tree_add("html", "text/html", 10, mimetypes);
+        search_tree_add("htm", "text/html", 10, mimetypes);
+        search_tree_add("png", "image/png", 10, mimetypes);
+        search_tree_add("jpg", "image/jpeg", 11, mimetypes);
+        search_tree_add("jpeg", "image/jpeg", 11, mimetypes);
+        search_tree_add("css", "text/css", 9, mimetypes);
+        search_tree_add("js", "text/javascript", 16, mimetypes);
+        search_tree_add("txt", "text/plain", 11, mimetypes);
+        search_tree_add("bmp", "image/bmp", 10, mimetypes);
+        search_tree_add("csv", "text/csv", 9, mimetypes);
+        search_tree_add("gif", "image/gif", 10, mimetypes);
+        search_tree_add("json", "application/json", 17, mimetypes);
+        search_tree_add("mp3", "audio/mpeg", 11, mimetypes);
+        search_tree_add("mp4", "video/mp4", 10, mimetypes);
+        search_tree_add("mpeg", "video/mpeg", 11, mimetypes);
+        search_tree_add("oga", "audio/ogg", 10, mimetypes);
+        search_tree_add("ogv", "video/ogg", 10, mimetypes);
+        search_tree_add("ogx", "application/ogg", 16, mimetypes);
+        search_tree_add("otf", "font/otf", 9, mimetypes);
+        search_tree_add("pdf", "application/pdf", 16, mimetypes);
+        search_tree_add("php", "application/x-httpd-php", 24, mimetypes);
+        search_tree_add("rtf", "application/rtf", 16, mimetypes);
+        search_tree_add("wav", "audio/wav", 10, mimetypes);
+        search_tree_add("weba", "audio/webm", 11, mimetypes);
+        search_tree_add("webm", "video/webm", 11, mimetypes);
+        search_tree_add("webp", "image/webp", 11, mimetypes);
+        search_tree_add("xhtml", "application/xhtml+xml", 22, mimetypes);
+        search_tree_add("xml", "application/xml", 16, mimetypes);
+    }
+    const char* file_extension = get_extension(filename);
+    size_t val_size;
+    const char* mimetype = search_tree_lookup(mimetypes, file_extension, &val_size);
+    if (mimetype == NULL)
+        mimetype = "application/octet-stream";
+    if (out_len < strlen(mimetype) + 1) {
+        return -1;
+    }
+    strcpy(out, mimetype);
 }

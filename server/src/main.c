@@ -2,6 +2,7 @@
 #include "http.h"
 #include "server.h"
 #include "search_tree.h"
+#include "config.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -10,16 +11,25 @@
 #include <signal.h>
 
 int main(int argc, char** argv) {
-    server_configuration config = { 0 };
-    config.addr = "0.0.0.0";
-    config.port = 8080;
-    config.request_timeout = 30;
-    config.error_directory = "error";
-    config.routes = search_tree_new();
-    config.file_root = "/var/www/html";
-    if (run_server(&config) != 0) {
-        printf("Error occurred running the server\n.");
-        search_tree_free(config.routes);
-        return -1;
+    const char* CONFIG_PATH = "/etc/http_server/http_server.conf";
+    if (argc > 1) {
+        CONFIG_PATH = argv[1];
+    }
+    server_configuration* config = server_configuration_new();
+    int err = load_config(CONFIG_PATH, config);
+    if (err != 0) {
+        if (err < 0) {
+            perror("Could not read config file.\n");
+            server_configuration_free(config);
+            exit(1);
+        }
+        fprintf(stderr, "Error in config file on line %d\n", err);
+        server_configuration_free(config);
+        exit(1);
+    }
+    printf("Serving files from %s on %s:%d...\n", config->file_root, config->addr, config->port);
+    if (run_server(config) != 0) {
+        perror("Failed to start server.\n");
+        server_configuration_free(config);
     }
 }

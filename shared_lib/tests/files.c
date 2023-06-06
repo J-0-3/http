@@ -24,11 +24,4 @@ int main(int argc, char** argv) {
     assert(memcmp(test_file_data, file_contents, test_file_size) == 0);
 
     remove("/tmp/testfile");
-
-    char path[256] = "";
-    assert(build_path(path, 256, 3, "/etc", "cron.d", "hourly") == 0);
-    assert(strcmp(path, "/etc/cron.d/hourly") == 0);
-    path[0] = '\0';
-    assert(build_path(path, 256, 4, "~", "desktop", "icons", "apps") == 0);
-    assert(strcmp(path, "~/desktop/icons/apps") == 0);
 }
