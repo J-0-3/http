@@ -11,15 +11,18 @@ COPY ./shared_lib/include /app/shared_lib/include
 COPY ./shared_lib/CMakeLists.txt /app/shared_lib
 COPY ./server/src /app/server/src
 COPY ./server/include /app/server/include
+COPY ./server/default /app/server/default
 COPY ./server/CMakeLists.txt /app/server
 
 RUN mkdir /app/build
 WORKDIR /app/build
 RUN cmake -DBUILD_TESTING=OFF -DBUILD_CLIENT=OFF -DBUILD_PROXY=OFF -DBUILD_REVERSE_PROXY=OFF .. 
-RUN make http_server
+RUN make
+RUN make install
 
 FROM alpine:latest 
 RUN mkdir /app
 COPY --from=builder /app/build/server/http_server /app
-EXPOSE 8080
+COPY --from=builder /etc/http_server/ /etc/http_server
+COPY --from=builder /var/www/html/ /var/www/html
 CMD ["/app/http_server"]
