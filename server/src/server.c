@@ -4,6 +4,7 @@
 #include "files.h"
 #include "paths.h"
 #include "int_to_str.h"
+#include "sanitise.h"
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -55,7 +56,11 @@ int load_page(const char* page, char** content_buf) {
     if (build_path(path, path_length, 2, CONFIG->file_root, page) != 0) {
         return -1;
     }
-    long file_size = get_filesize(path);
+    char sanitised[path_length];
+    if (sanitise_path(path, sanitised, path_length) != 0) {
+        return -1;
+    }
+    long file_size = get_filesize(sanitised);
     if (file_size < 0) {
         return -2;
     }
@@ -63,7 +68,7 @@ int load_page(const char* page, char** content_buf) {
     if (content_buf == NULL) {
         return -1;
     }
-    if (read_file(path, *content_buf, file_size) < 0) {
+    if (read_file(sanitised, *content_buf, file_size) < 0) {
         free(*content_buf);
         return -1;
     }
@@ -168,7 +173,13 @@ void* handle_connection(void* fd_vp) {
 
     const char* filename = get_route_file(req->resource);
     if (filename == NULL) {
-        filename = req->resource;
+        if (CONFIG->allow_unrouted) {
+            filename = req->resource;
+        }
+        else {
+            send_error(conn_fd, NOT_FOUND, "Not Found");
+            goto end;
+        }
     }
 
     char* page_contents;

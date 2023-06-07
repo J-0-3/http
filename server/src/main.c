@@ -10,13 +10,19 @@
 #include <unistd.h>
 #include <signal.h>
 
+const char* CONFIG_PATH = "/etc/http_server/http_server.conf";
+const char* DEFAULT_CONFIG_PATH = "/etc/http_server/http_server.default.conf";
+
 int main(int argc, char** argv) {
-    const char* CONFIG_PATH = "/etc/http_server/http_server.conf";
     if (argc > 1) {
         CONFIG_PATH = argv[1];
     }
     server_configuration* config = server_configuration_new();
     int err = load_config(CONFIG_PATH, config);
+    if (err < 0) {
+        printf("Could not read config file at %s.\nAttempting to load default config file from %s...\n", CONFIG_PATH, DEFAULT_CONFIG_PATH);
+        err = load_config(DEFAULT_CONFIG_PATH, config);
+    }
     if (err != 0) {
         if (err < 0) {
             perror("Could not read config file.\n");

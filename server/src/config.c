@@ -7,7 +7,6 @@
 server_configuration* server_configuration_new() {
     server_configuration* config = malloc(sizeof(server_configuration));
     memset(config, 0, sizeof(server_configuration));
-    config->file_blacklist = search_tree_new();
     config->routes = search_tree_new();
     return config;
 }
@@ -29,7 +28,6 @@ void server_configuration_set_error_directory(server_configuration* config, cons
 }
 
 void server_configuration_free(server_configuration* config) {
-    search_tree_free(config->file_blacklist);
     search_tree_free(config->routes);
     free(config->addr);
     free(config->error_directory);
@@ -42,11 +40,15 @@ int load_config(const char* filename, server_configuration* config) {
     if (filesize < 0) {
         return -1;
     }
-    char* config_file = malloc(filesize);
+    char* config_file = malloc(filesize + 1);
+    if (config_file == NULL) {
+        return -1;
+    }
     if (read_file(filename, config_file, filesize) < 0) {
         free(config_file);
         return -1;
     }
+    config_file[filesize] = '\0';
 
     char* strtok_file_saveptr = NULL;
     int line_num = 1;
@@ -80,11 +82,8 @@ int load_config(const char* filename, server_configuration* config) {
                 free(config_file);
                 return line_num;
             }
-        } else if (strcmp(setting, "BLACKLIST") == 0)  {
-            if (search_tree_add(value, "", 1, config->file_blacklist) != 0) {
-                free(config_file);
-                return line_num;
-            }
+        } else if (strcmp(setting, "ALLOW_UNROUTED_FILE_ACCESS") == 0)  {
+            config->allow_unrouted = atoi(value);
         } else if (strcmp(setting, "ROOT") == 0) {
             server_configuration_set_file_root(config, value);
         } else if (strcmp(setting, "//") != 0) {

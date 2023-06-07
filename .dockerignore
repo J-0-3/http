@@ -21,8 +21,8 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+/.cache/
 /build
 /CMakeFiles
-add_cmakelists_tests.sh
 LICENSE
 README.md

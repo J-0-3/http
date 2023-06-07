@@ -8,7 +8,7 @@ typedef struct server_configuration {
     char* file_root;
     char* error_directory;
     int request_timeout;
-    search_tree file_blacklist;
+    int allow_unrouted;
 } server_configuration;
 
 server_configuration* server_configuration_new();

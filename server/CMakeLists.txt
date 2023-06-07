@@ -15,4 +15,4 @@ endif()
 
 install(TARGETS http_server)
 install(DIRECTORY default/html DESTINATION /var/www)
-install(FILES default/http_server.conf DESTINATION /etc/http_server)
+install(FILES default/http_server.default.conf DESTINATION /etc/http_server)

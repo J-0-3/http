@@ -1,6 +1,7 @@
 include_directories(include)
 file(GLOB SOURCES src/*.c)
-add_library(http STATIC ${SOURCES})
+add_library(http ${SOURCES})
+target_link_libraries(http m)
 
 if (BUILD_TESTING) 
 	add_executable(test_http tests/http.c)
@@ -26,4 +27,8 @@ if (BUILD_TESTING)
 	add_executable(test_paths tests/paths.c)
 	target_link_libraries(test_paths http)
 	add_test(NAME test_paths COMMAND test_paths)
+
+	add_executable(test_sanitise tests/sanitise.c)
+	target_link_libraries(test_sanitise http)
+	add_test(NAME test_sanitise COMMAND test_sanitise)
 endif()
