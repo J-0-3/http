@@ -22,13 +22,13 @@ if (BUILD_TESTING)
 
 	add_executable(test_files tests/files.c)
 	target_link_libraries(test_files http)
-	add_test(NAME test_files COMMAND test_files)
+	add_test(NAME files COMMAND test_files)
 
 	add_executable(test_paths tests/paths.c)
 	target_link_libraries(test_paths http)
-	add_test(NAME test_paths COMMAND test_paths)
+	add_test(NAME paths COMMAND test_paths)
 
 	add_executable(test_sanitise tests/sanitise.c)
 	target_link_libraries(test_sanitise http)
-	add_test(NAME test_sanitise COMMAND test_sanitise)
+	add_test(NAME sanitise COMMAND test_sanitise)
 endif()
