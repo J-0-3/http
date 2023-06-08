@@ -3,7 +3,8 @@
 
 typedef enum http_version {
     HTTP_1_0,
-    HTTP_1_1
+    HTTP_1_1,
+    HTTP_VERSION_COUNT
 } http_version;
 
 typedef enum http_method {
@@ -15,7 +16,8 @@ typedef enum http_method {
     HEAD,
     DELETE,
     TRACE,
-    PATCH
+    PATCH,
+    HTTP_METHOD_COUNT
 } http_method;
 
 typedef enum http_status {

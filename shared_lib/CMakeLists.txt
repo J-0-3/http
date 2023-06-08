@@ -31,4 +31,8 @@ if (BUILD_TESTING)
 	add_executable(test_sanitise tests/sanitise.c)
 	target_link_libraries(test_sanitise http)
 	add_test(NAME sanitise COMMAND test_sanitise)
+
+	add_executable(test_array_utils tests/array_utils.c)
+	target_link_libraries(test_array_utils http)
+	add_test(NAME array_utils COMMAND test_array_utils)
 endif()

@@ -1,8 +1,10 @@
 #include "client.h"
+#include "array_utils.h"
 #include <argp.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 typedef struct program_args { 
     const char* url;
@@ -46,12 +48,20 @@ int main (int argc, char** argv) {
     };
     struct argp parser = {options, parse_args, 0, 0};
     argp_parse(&parser, argc, argv, 0, 0, NULL);
-    if (args.url != NULL) {
-        struct sockaddr_in addr = { 0 };
-        if (resolve_host(args.url, (struct sockaddr*)&addr) != 0) {
-            perror("Coudl not resolve host\n");
-        } else {
-            printf("%s\n", inet_ntoa(addr.sin_addr));
+    if (args.url == NULL) {
+        perror("Must specify --url (-u)\n");
+        return 1;
+    } 
+    if (!all_str((const char*[]){"GET", "POST", "PUT", "HEAD", "TRACE", "OPTIONS", "CONNECT", "DELETE"}, 8, strcmp, args.method)) {
+        perror("Invalid HTTP method.\n");
+        return 1;
+    }
+    http_req* request = http_req_new_empty();
+    char meth_as_str[16];
+    for (http_method method = GET; method < HTTP_METHOD_COUNT; method++) {
+        http_meth_enum_as_str(method, meth_as_str, 16);
+        if (strcmp(meth_as_str, args.method) == 0) {
+            request->meth = method;
         }
     }
 }
