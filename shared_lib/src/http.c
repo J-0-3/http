@@ -6,6 +6,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 http_req* http_req_new(http_method meth, const char* resource, http_version ver, search_tree headers, size_t content_length, const char* content) {
     http_req* req = malloc(sizeof(http_req));
