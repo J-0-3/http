@@ -1,5 +1,6 @@
 #include "client.h"
 #include "array_utils.h"
+#include "http.h"
 #include <argp.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -52,7 +53,7 @@ int main (int argc, char** argv) {
         perror("Must specify --url (-u)\n");
         return 1;
     } 
-    if (!all_str((const char*[]){"GET", "POST", "PUT", "HEAD", "TRACE", "OPTIONS", "CONNECT", "DELETE"}, 8, strcmp, args.method)) {
+    if (all_str((char*[]){"GET", "POST", "PUT", "HEAD", "TRACE", "OPTIONS", "CONNECT", "DELETE"}, 8, strcmp, args.method)) {
         perror("Invalid HTTP method.\n");
         return 1;
     }

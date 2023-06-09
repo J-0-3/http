@@ -1,10 +1,7 @@
 #pragma once
-#include <stdbool.h>
+#include <stddef.h>
 
-bool any(const void* values, int num_values, bool(*predicate)(const void*, const void*), const void* arg);
-bool any_str(const char** values, int num_values, bool(*predicate)(const char*, const void*), const void* arg);
-bool all(const void* values, int num_values, bool(*predicate)(const void*, const void*), const void* arg);
-bool all_str(const char** values, int num_values, bool(*predicate)(const char*, const void*), const void* arg);
-bool contains_s(const char** values, int num_values, const char* value);
-bool contains_i(const int* values, int num_values, int value);
-bool contains_f(const float* values, int num_values, float value);
+int any(const void* values, size_t val_size, int num_values, int(*predicate)(const void*, const void*), const void* arg);
+int any_str(char** values, int num_values, int(*predicate)(const char*, const char*), const char* arg);
+int all(const void* values, size_t val_size, int num_values, int(*predicate)(const void*, const void*), const void* arg);
+int all_str(char** values, int num_values, int(*predicate)(const char*, const char*), const char* arg);
