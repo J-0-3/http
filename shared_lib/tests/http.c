@@ -48,11 +48,17 @@ int main(int argc, char** argv) {
     assert(http_parse_req_header_line("", test_req) == -2);
     assert(http_parse_req_header_line(":", test_req) == -2);
 
-    assert(http_req_set_content("name=user&password=1234", 24, test_req) == 0);
+    assert(http_req_set_content("name=user&password=1234", 24, test_req, 0) == 0);
     assert(strcmp(test_req->content, "name=user&password=1234") == 0);
 
     http_req_free(test_req);
     test_req = http_req_new_empty();
+    assert(http_req_set_content("somehttpdata", 13, test_req, 1) == 0);
+    assert(strcmp(test_req->content, "somehttpdata") == 0);
+    const char* cl_header = search_tree_lookup(test_req->headers, "Content-Length", &val_size);
+    assert(cl_header != NULL);
+    assert(val_size == 3);
+    assert(strcmp(cl_header, "13") == 0);
     assert(http_parse_req_status_line("TEST /login.php HTTP/1.1", test_req) == -2);
     assert(http_parse_req_status_line("GET  HTTP/1.1", test_req) == -2);
     assert(http_parse_req_status_line("GET /index.html", test_req) == -2);
