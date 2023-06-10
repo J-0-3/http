@@ -3,7 +3,7 @@
 An set of HTTP related tools written in C. These are: a server, a client (like curl), a proxy and a reverse proxy (like nginx).
 All tools are built using CMake, and the server, proxy and reverse proxy have Dockerfiles so they can be containerised.
 
-Right now, I am only working on the HTTP server, and the other components are **not implemented**, but I will implement them once I'm finished with the server.
+Right now, I am only working on the HTTP server and client, and the other components are **not implemented**, but I will implement them when I get round to it.
 
 ## Compiling
 
@@ -107,3 +107,30 @@ The available settings are:
 It is recommended that ```ALLOW_UNROUTED_FILE_ACCESS``` is set to `1` as otherwise all files which need to be accessed on the web server must have an explicit route defined (for example, a route must be created to every single image file or CSS stylesheet that needs to be loaded).
 
 When run, the server will simply listen for HTTP requests and respond with the contents of the file with the corresponding route/filename in the root directory.
+
+### Client
+
+The client is a simple standalone executable with no configuration or setup. 
+
+The command line help is as follows:
+
+```
+Usage: http_client [OPTION...]
+
+  -d, --data=data            The data to include in the HTTP request
+  -h, --header=header        Additional HTTP header to include (in form "key:
+                             value"
+  -m, --method=method        The HTTP method to perform
+                             (GET,POST,PUT,HEAD,TRACE,OPTIONS,CONNECT,DELETE)
+                             (default GET)
+  -p, --port=port            Custom port to connect on
+  -u, --url=url              The URL to request
+      --verbose              Produce verbose output
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -v, --version=version      The HTTP protocol version to use (HTTP/1.0,
+                             HTTP/1.1) (default HTTP/1.1)
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+```
