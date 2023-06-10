@@ -3,10 +3,12 @@
 #include "trim_whitespace.h"
 #include "files.h"
 #include "paths.h"
+#include "int_to_str.h"
 #include <string.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 http_req* http_req_new(http_method meth, const char* resource, http_version ver, search_tree headers, size_t content_length, const char* content) {
     http_req* req = malloc(sizeof(http_req));
@@ -179,13 +181,39 @@ int http_parse_req_header_line(const char* header_line, http_req* req) {
     return 0;
 }
 
-int http_req_set_content(const char* content, size_t content_length, http_req* req) {
+int http_req_set_content(const char* content, size_t content_length, http_req* req, int set_content_length_header) {
     req->content_length = content_length;
     req->content = malloc(content_length);
     if (req->content == NULL) {
+        req->content_length = 0;
         return -1;
     }
     memcpy(req->content, content, content_length);
+    if (set_content_length_header) {
+        unsigned int req_length = (int)floor(log10(content_length)) + 1;
+        char content_length_str[req_length + 1];
+        if (int_to_str(content_length, content_length_str, req_length + 1) != 0) {
+            free(req->content);
+            req->content = NULL;
+            req->content_length = 0;
+            return -1;
+        }
+        if (search_tree_add("Content-Length", content_length_str, strlen(content_length_str) + 1, req->headers) != 0) {
+            free(req->content);
+            req->content = NULL;
+            req->content_length = 0;
+            return -1;
+        }
+    }
+    return 0;
+}
+
+int http_req_set_resource(const char* resource, http_req* req) {
+    req->resource = malloc(strlen(resource) + 1);
+    if (req->resource == NULL) {
+        return -1;
+    }
+    strcpy(req->resource, resource);
     return 0;
 }
 
@@ -394,7 +422,7 @@ int http_res_print(http_res* res) {
     printf("Status Message: %s\n", res->status_message);
     printf("Headers: \n");
     search_tree_foreach(res->headers, print_header, NULL);
-    printf("Content: ");
+    printf("Content: \n");
     for (int c = 0; c < res->content_length; c++) {
         printf("%c", res->content[c]);
     }

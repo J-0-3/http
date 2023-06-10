@@ -134,3 +134,18 @@ void search_tree_foreach(search_tree tree, void(*callback)(const char*, const vo
     search_tree_foreach(&(root->left), callback, arg);
     search_tree_foreach(&(root->right), callback, arg);
 }
+
+int search_tree_merge(search_tree merge_to, search_tree to_add) {
+    search_tree_node* root = *to_add;
+    if (root == NULL) {
+        return 0;
+    }
+    int err;
+    err = search_tree_add(root->key, root->val, root->val_size, merge_to);
+    if (err != 0) return -1;
+    err = search_tree_merge(merge_to, &(root->left));
+    if (err != 0) return -1;
+    err = search_tree_merge(merge_to, &(root->right));
+    if (err != 0) return -1;
+    return 0;
+}
