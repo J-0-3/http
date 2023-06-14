@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-#define VERBOSE_KEY_VAL -1
+#define VERBOSE_OPT_VAL -1
 
 typedef struct program_args { 
     const char* url;
@@ -52,7 +52,7 @@ error_t parse_args(int key, char* arg, struct argp_state *state) {
                 exit(1);
             }
             break;
-        case VERBOSE_KEY_VAL:
+        case VERBOSE_OPT_VAL:
             args.verbose = 1;
             break;
         case 'p':
@@ -70,7 +70,7 @@ int main (int argc, char** argv) {
         {"method", 'm', "method", 0, "The HTTP method to perform (GET,POST,PUT,HEAD,TRACE,OPTIONS,CONNECT,DELETE) (default GET)"},
         {"data", 'd', "data", 0, "The data to include in the HTTP request"},
         {"header", 'h', "header", 0, "Additional HTTP header to include (in form \"key: value\""},
-        {"verbose", VERBOSE_KEY_VAL, 0, 0, "Produce verbose output"},
+        {"verbose", VERBOSE_OPT_VAL, 0, 0, "Produce verbose output"},
         {"port", 'p', "port", 0, "Custom port to connect on"},
         {"version", 'v', "version", 0, "The HTTP protocol version to use (HTTP/1.0, HTTP/1.1) (default HTTP/1.1)"},
         { 0 }
