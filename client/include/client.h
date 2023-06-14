@@ -1,5 +1,6 @@
 #include "http.h"
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
 typedef struct url {
     char* resource;
@@ -28,3 +29,10 @@ int parse_header_string(const char* header_str, search_tree header_tree);
 /// @return a url struct
 /// @retval NULL Error
 url_t* parse_url(const char* url);
+
+/// @brief Parse a proxy address in the form host:port
+/// @param proxy the proxy address
+/// @param addr a sockaddr_in struct which will contain the resolved IP and port number
+/// @retval 0 OK
+/// @retval -1 Error
+int parse_proxy_address(const char* proxy, struct sockaddr_in* addr);

@@ -20,6 +20,7 @@ typedef struct program_args {
     unsigned short port;
     int verbose;
     const char* version;
+    const char* proxy;
  } program_args;
 
 static program_args args = { 
@@ -27,6 +28,7 @@ static program_args args = {
     .method = "GET",
     .headers = NULL,
     .data = NULL,
+    .proxy = NULL,
     .verbose = 0,
     .port = 0,
     .version = "HTTP/1.1"
@@ -60,6 +62,8 @@ error_t parse_args(int key, char* arg, struct argp_state *state) {
             break;
         case 'v':
             args.version = arg;
+        case 'x':
+            args.proxy = arg;
     }
     return 0;
 }
@@ -73,6 +77,7 @@ int main (int argc, char** argv) {
         {"verbose", VERBOSE_OPT_VAL, 0, 0, "Produce verbose output"},
         {"port", 'p', "port", 0, "Custom port to connect on"},
         {"version", 'v', "version", 0, "The HTTP protocol version to use (HTTP/1.0, HTTP/1.1) (default HTTP/1.1)"},
+        {"proxy", 'x', "proxy", 0, "HTTP proxy to use (in form \"server:port\")"},
         { 0 }
     };
     struct argp parser = {options, parse_args, 0, 0};
@@ -100,8 +105,13 @@ int main (int argc, char** argv) {
         free_url_t(url);
         return -1;
     }
+    
     http_req* request = http_req_new_empty();
-    http_req_set_resource(url->resource, request);
+    if (args.proxy != NULL) {
+        http_req_set_resource(args.url, request);
+    } else {
+        http_req_set_resource(url->resource, request);
+    }
     char meth_as_str[16];
     for (http_method method = GET; method < HTTP_METHOD_COUNT; method++) {
         http_meth_enum_as_str(method, meth_as_str, 16);
@@ -120,11 +130,20 @@ int main (int argc, char** argv) {
     if (args.verbose) {
         printf("Resolving hostname...\n");
     }
-    if (resolve_host(url->hostname, (struct sockaddr*)&addr) != 0) {
-        perror("Could not resolve domain name\n");
-        free_url_t(url);
-        http_req_free(request);
-        return -1;
+    if (!args.proxy) {
+        if (resolve_host(url->hostname, (struct sockaddr*)&addr) != 0) {
+            perror("Could not resolve domain name\n");
+            free_url_t(url);
+            http_req_free(request);
+            return -1;
+        }
+    } else {
+        if (parse_proxy_address(args.proxy, &addr) != 0) {
+            perror("Could not resolve proxy address\n");
+            free_url_t(url);
+            http_req_free(request);
+            return -1;
+        }
     }
     if (args.verbose) {
         printf("Got IP address: %s.\n", inet_ntoa(addr.sin_addr));
@@ -140,14 +159,16 @@ int main (int argc, char** argv) {
             return -1;
         }
     }
-    if (args.port == 0) {
-        if (strcmp(url->protocol, "http") == 0) { 
-            addr.sin_port = htons(80);
+    if (!args.proxy) {
+        if (args.port == 0) {
+            if (strcmp(url->protocol, "http") == 0) { 
+                addr.sin_port = htons(80);
+            } else {
+                addr.sin_port = htons(443);
+            }
         } else {
-            addr.sin_port = htons(443);
+            addr.sin_port = htons(args.port);
         }
-    } else {
-        addr.sin_port = htons(args.port);
     }
     free_url_t(url);
     addr.sin_family = AF_INET;

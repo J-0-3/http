@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 
@@ -92,4 +93,26 @@ url_t* parse_url(const char* url) {
     strcpy(url_struct->resource, "/");
     strcat(url_struct->resource, path);
     return url_struct;
+}
+
+int parse_proxy_address(const char *proxy, struct sockaddr_in *addr) {
+    printf("Parsing proxy address...\n");
+    char proxy_address_copy[strlen(proxy) + 1];
+    strcpy(proxy_address_copy, proxy);
+    char* host = strtok(proxy_address_copy, ":");
+    char* port_str = strtok(NULL, "");
+    int port = 0;
+    if (port_str == NULL){
+        port = 8080; 
+    } else {
+        port = atoi(port_str);
+    }
+    if (port < 1 || port > 65535) {
+        return -1;
+    }
+    if (resolve_host(host, (struct sockaddr*)addr) != 0) {
+        return -1;
+    }
+    addr->sin_port = htons(port);
+    return 0;
 }
